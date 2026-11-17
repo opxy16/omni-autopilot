@@ -11,6 +11,7 @@ contracts/out/
 contracts/cache/
 contracts/broadcast/*/dry-run/
 broadcast/**/run-*.json.tmp
+*.recovery.lock
 
 # node / next
 node_modules/

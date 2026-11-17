@@ -14,8 +14,8 @@ export function statusSentence(s: DashState): { text: string; tone: "good" | "wa
   if (!totalUsd) return { text: "Waiting for the first balances to arrive from the beacons.", tone: "neutral" };
   if (paused) return { text: "Autopilot is paused — it keeps tracking, but won't trade or alert.", tone: "warn" };
   if (pendingNonce) return { text: `Your mix drifted, so the autopilot asked the Base vault to trade (request #${pendingNonce}). Waiting for it to confirm…`, tone: "info" };
-  if (ethShare > hi) return { text: `Your mix is ${pct(ethShare)} ETH — above your ${pct(lo, 0)}–${pct(hi, 0)} comfort zone. A rebalance is queued for when the cooldown ends.`, tone: "warn" };
-  if (ethShare < lo) return { text: `Your mix is ${pct(ethShare)} ETH — below your ${pct(lo, 0)}–${pct(hi, 0)} comfort zone. A rebalance is queued for when the cooldown ends.`, tone: "warn" };
+  if (ethShare > hi) return { text: `Your mix is ${pct(ethShare)} ETH — above your ${pct(lo, 0)}–${pct(hi, 0)} comfort zone. The autopilot will trade back on its next check-in, after a short cooldown between trades.`, tone: "warn" };
+  if (ethShare < lo) return { text: `Your mix is ${pct(ethShare)} ETH — below your ${pct(lo, 0)}–${pct(hi, 0)} comfort zone. The autopilot will trade back on its next check-in, after a short cooldown between trades.`, tone: "warn" };
   return { text: `Your mix is ${pct(ethShare)} ETH — inside your ${pct(lo, 0)}–${pct(hi, 0)} comfort zone. Nothing to do.`, tone: "good" };
 }
 
@@ -126,7 +126,9 @@ export function Hero({ s, now }: { s: DashState; now: number }) {
           <div className="mt-5 flex flex-wrap gap-2">
             <Pill tone={status.tone}>{status.tone === "good" ? "Balanced" : status.tone === "info" ? "Rebalancing" : status.tone === "warn" ? "Drifted" : "Starting up"}</Pill>
             <Pill tone="neutral">Last reaction {ago(s.autopilot.lastReactAt, now)}</Pill>
-            <Pill tone="neutral">{s.vault.rebalanceCount} rebalances so far</Pill>
+            <Pill tone="neutral">
+              {s.vault.rebalanceCount} rebalance{s.vault.rebalanceCount === 1 ? "" : "s"} so far
+            </Pill>
           </div>
         </div>
         <div className="relative mx-auto grid place-items-center">

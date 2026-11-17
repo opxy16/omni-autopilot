@@ -31,11 +31,16 @@ function cast(args) {
   throw new Error("Foundry's `cast` not found. Install Foundry first.");
 }
 
+// Optional role: `node scripts/new-wallet.mjs MARKET` → MARKET_PRIVATE_KEY / MARKET_ADDRESS
+const role = (process.argv[2] || "").toUpperCase().replace(/[^A-Z]/g, "");
+const KEY = role ? `${role}_PRIVATE_KEY` : "PRIVATE_KEY";
+const ADDR = role ? `${role}_ADDRESS` : "DEPLOYER_ADDRESS";
+
 const existing = existsSync(envPath) ? readFileSync(envPath, "utf8") : "";
-const addrLine = existing.match(/^DEPLOYER_ADDRESS=(0x[0-9a-fA-F]{40})$/m);
-if (/^PRIVATE_KEY=/m.test(existing)) {
-  console.log(`A wallet already exists in contracts/.env`);
-  console.log(`Address: ${addrLine ? addrLine[1] : "(unknown — DEPLOYER_ADDRESS missing)"}`);
+const addrLine = existing.match(new RegExp(`^${ADDR}=(0x[0-9a-fA-F]{40})$`, "m"));
+if (new RegExp(`^${KEY}=`, "m").test(existing)) {
+  console.log(`A ${role || "deploy"} wallet already exists in contracts/.env`);
+  console.log(`Address: ${addrLine ? addrLine[1] : `(unknown — ${ADDR} missing)`}`);
   process.exit(0);
 }
 
@@ -51,9 +56,9 @@ if (!/^0x[0-9a-fA-F]{40}$/.test(address) || !/^0x[0-9a-fA-F]{64}$/.test(key)) {
 
 const block = [
   existing && !existing.endsWith("\n") ? "\n" : "",
-  "# Deploy/demo wallet — TESTNETS ONLY. Never commit this file.\n",
-  `PRIVATE_KEY=${key}\n`,
-  `DEPLOYER_ADDRESS=${address}\n`,
+  `# ${role || "Deploy"} wallet — TESTNETS ONLY. Never commit this file.\n`,
+  `${KEY}=${key}\n`,
+  `${ADDR}=${address}\n`,
 ].join("");
 if (existing) appendFileSync(envPath, block, { mode: 0o600 });
 else writeFileSync(envPath, block, { mode: 0o600 });
