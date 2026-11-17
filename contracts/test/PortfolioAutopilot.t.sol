@@ -389,6 +389,25 @@ contract PortfolioAutopilotTest is OmniHarness {
         assertEq(journal.snapshotCount(), 2);
     }
 
+    /// Regression: a drift that is still waiting must be retried on the very next tick,
+    /// even while the post-snapshot beacon re-syncs are being worked through.
+    function test_retryNotDelayedByResyncTicks() public {
+        _seed();
+        _cron(); // snapshot tick → 3 re-sync ticks queued
+        _pump();
+        assertEq(ap.resyncCursor(), 1);
+        eth[0].mint(wallet, 3e18);
+        _pump(); // drift → rebalance #1 executes
+        eth[0].mint(wallet, 5e18);
+        _pump(); // drift again, held back by the cooldown
+        assertEq(ap.nonce(), 1);
+        vm.warp(block.timestamp + 121);
+        _cron(); // a re-sync tick
+        _pump();
+        assertEq(ap.nonce(), 2, "retried on the re-sync tick");
+        assertEq(ap.resyncCursor(), 2, "and the re-sync still advanced");
+    }
+
     function test_resyncHealsMissedEvents() public {
         _seed();
         // A transfer the reactive contract never saw (e.g. dropped while it was out of funds)

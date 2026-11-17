@@ -62,13 +62,13 @@ A rebalance, step by step (this exact loop is in [docs/EVIDENCE.md](docs/EVIDENC
 
 ```mermaid
 sequenceDiagram
-  participant U as Unichain Sepolia
+  participant U as Ethereum Sepolia
   participant R as PortfolioAutopilot (Lasna)
   participant P as Base callback proxy
   participant V as RebalancerVault (Base)
-  U->>R: Transfer: 2,000 tUSD into the wallet
-  Note over R: books updated → ETH share 50%<br/>below the 55–65% comfort zone
-  R->>P: requestCallbackV_1_0(rebalance: buy tETH with 1,200 tUSD)
+  U->>R: Transfer: 3 tETH into the wallet
+  Note over R: books updated → ETH share 72.6%<br/>above the 55–65% comfort zone
+  R->>P: requestCallbackV_1_0(rebalance: sell tETH back toward 60%)
   P->>V: rebalance(rvm, nonce, …) — rvm injected by Reactive
   Note over V: checks proxy + sender, cooldown,<br/>trade cap, minimum output
   V->>V: swap in the pool
@@ -86,12 +86,12 @@ sequenceDiagram
 
 | Contract | Chain | Address |
 |---|---|---|
-| `PortfolioAutopilot` (reactive) | Reactive Lasna | [`0x2eE80f8764E2c389DAf9Bc8FD84B70D1EB003506`](https://lasna.reactscan.net/address/0x2eE80f8764E2c389DAf9Bc8FD84B70D1EB003506) |
-| `RebalancerVault` | Base Sepolia | [`0x939856f34105639013B0a541885cD82c66Ab2Ed5`](https://sepolia.basescan.org/address/0x939856f34105639013B0a541885cD82c66Ab2Ed5) |
-| `Journal` | Base Sepolia | [`0x3e5fB9147fedbEe32415dAcEDA186eBf85b06400`](https://sepolia.basescan.org/address/0x3e5fB9147fedbEe32415dAcEDA186eBf85b06400) |
-| `BalanceBeacon` | Base Sepolia | [`0x16B4Bf585275EED483bE2Df3D08e87E97926f24D`](https://sepolia.basescan.org/address/0x16B4Bf585275EED483bE2Df3D08e87E97926f24D) |
-| `BalanceBeacon` | Unichain Sepolia | [`0x939856f34105639013B0a541885cD82c66Ab2Ed5`](https://sepolia.uniscan.xyz/address/0x939856f34105639013B0a541885cD82c66Ab2Ed5) |
-| `BalanceBeacon` | Ethereum Sepolia | [`0xa5cB71006eaAE22be3955705d4611e40eC4AA11F`](https://sepolia.etherscan.io/address/0xa5cB71006eaAE22be3955705d4611e40eC4AA11F) |
+| `PortfolioAutopilot` (reactive) | Reactive Lasna | [`0x45750C2d44889faAeCFf4A1DD0986AACb972eAD7`](https://lasna.reactscan.net/address/0x45750C2d44889faAeCFf4A1DD0986AACb972eAD7) |
+| `RebalancerVault` | Base Sepolia | [`0xe964Fd709E373fd7fe0D05D052eFf58F747AC94e`](https://sepolia.basescan.org/address/0xe964Fd709E373fd7fe0D05D052eFf58F747AC94e) |
+| `Journal` | Base Sepolia | [`0xa12413eDA3f079037B1212c4253Bc86cDbd7e3C8`](https://sepolia.basescan.org/address/0xa12413eDA3f079037B1212c4253Bc86cDbd7e3C8) |
+| `BalanceBeacon` | Base Sepolia | [`0x4D39830176090Df0a2dc433B91bd4263f2c7A8c4`](https://sepolia.basescan.org/address/0x4D39830176090Df0a2dc433B91bd4263f2c7A8c4) |
+| `BalanceBeacon` | Unichain Sepolia | [`0xe964Fd709E373fd7fe0D05D052eFf58F747AC94e`](https://sepolia.uniscan.xyz/address/0xe964Fd709E373fd7fe0D05D052eFf58F747AC94e) |
+| `BalanceBeacon` | Ethereum Sepolia | [`0x939856f34105639013B0a541885cD82c66Ab2Ed5`](https://sepolia.etherscan.io/address/0x939856f34105639013B0a541885cD82c66Ab2Ed5) |
 | `DemoPool` tETH/tUSD (price) | Base Sepolia | [`0x55261feE0c85b940EA250A8b6C0d69D88AB9C1E0`](https://sepolia.basescan.org/address/0x55261feE0c85b940EA250A8b6C0d69D88AB9C1E0) |
 | `DemoPool` tETH/tUSD (LP alert) | Unichain Sepolia | [`0x55261feE0c85b940EA250A8b6C0d69D88AB9C1E0`](https://sepolia.uniscan.xyz/address/0x55261feE0c85b940EA250A8b6C0d69D88AB9C1E0) |
 | tETH / tUSD | Base & Unichain Sepolia | `0x2eE80f8764E2c389DAf9Bc8FD84B70D1EB003506` / `0xddA7C91fE406D02DB364BC580795d77B5fEf1Aaa` |
@@ -126,7 +126,7 @@ Watched (demo) wallet: `0x6493130815a21efc15747384233a0ad767702eB8`. Some addres
 cd contracts && forge test
 ```
 
-30 Foundry tests, including a 256-run fuzz test that the on-chain books always equal real balances. `test/utils/OmniHarness.sol` simulates Reactive inside one EVM: a mock system contract records subscriptions, routes each origin log to `react()` once per matching subscription (like the real network), and delivers callbacks through a per-chain proxy with the reactive address injected and gas held back. It asserts every `react()` stays under the 900k cap and every callback asks for at least 100k gas. The tests caught three real bugs before deployment: a missing start-up price, a cron tick that could exceed the gas cap, and a demo assumption about vault draining.
+31 Foundry tests, including a 256-run fuzz test that the on-chain books always equal real balances. `test/utils/OmniHarness.sol` simulates Reactive inside one EVM: a mock system contract records subscriptions, routes each origin log to `react()` once per matching subscription (like the real network), and delivers callbacks through a per-chain proxy with the reactive address injected and gas held back. It asserts every `react()` stays under the 900k cap and every callback asks for at least 100k gas. The tests caught three real bugs before the first deployment: a missing start-up price, a cron tick that could exceed the gas cap, and a demo assumption about vault draining.
 
 ## Run it yourself
 
@@ -176,7 +176,7 @@ Every reactive transaction is billed in lREACT. At Lasna's 100 gwei base fee, a 
 
 - Everything runs on testnets. tETH and tUSD are test tokens with no value, and the watched wallet is a demo wallet. All activity you see was generated by us to demonstrate the system.
 - Price moves in the demo come from a separate "market" wallet that sells test tokens into the pool; the watched wallet is not involved, so only the price changes.
-- Rebalance #2 in the evidence was triggered by an earlier version of the demo script that briefly minted 120 tETH into the watched wallet. The autopilot's reaction (sell) was correct for what it saw.
+- This is deployment v2. We retired v1 (addresses in `contracts/deployments/v1/`) after spotting that a rebalance retry could wait behind the post-snapshot beacon re-syncs; v2 retries on every tick (see `test_retryNotDelayedByResyncTicks`). v1's loops are still on-chain.
 
 ## Repository layout
 

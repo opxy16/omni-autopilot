@@ -337,8 +337,9 @@ contract PortfolioAutopilot is AbstractReactive {
         emit RebalanceSettled(n, executed, log.txHash);
     }
 
-    /// @dev One heavy action per tick keeps every reactive tx well under the 900k gas cap:
-    ///      snapshot → one beacon re-sync per tick → otherwise retry a pending/cooled-down rebalance.
+    /// @dev Keeps every reactive tx well under the 900k gas cap: a snapshot tick does only the
+    ///      snapshot; later ticks re-sync one beacon each (a small callback) and, like every other
+    ///      tick, retry a rebalance that timed out or was held back by the cooldown.
     function _onCron(uint256 cronTx) internal {
         if (lastSnapshotAt == 0 || block.timestamp >= lastSnapshotAt + snapshotInterval) {
             _snapshot();
@@ -349,7 +350,6 @@ contract PortfolioAutopilot is AbstractReactive {
             uint256 i = resyncCursor - 1;
             resyncCursor = i + 1 < CHAINS ? uint8(i + 2) : 0;
             _resyncOne(i);
-            return;
         }
         // Retry a rebalance that timed out or was blocked by the cooldown.
         _evaluate(cronTx);

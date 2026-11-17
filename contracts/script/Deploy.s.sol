@@ -86,14 +86,14 @@ contract DeployCallbacks is Common {
 
         vm.startBroadcast(pk);
         address vault;
+        address journal;
         if (chainId == BASE_SEPOLIA) {
             vault = address(
                 new RebalancerVault{value: fund}(
                     proxy, ap, IERC20Min(e), IERC20Min(u), DemoPool(_addr(chainId, "pool")), 60
                 )
             );
-            Journal j = new Journal{value: fund}(proxy, ap);
-            _save(chainId, "journal", address(j));
+            journal = address(new Journal{value: fund}(proxy, ap));
         }
         address[] memory toks = new address[](2);
         toks[0] = e;
@@ -104,7 +104,9 @@ contract DeployCallbacks is Common {
         BalanceBeacon b = new BalanceBeacon{value: fund}(proxy, ap, toks, holders);
         vm.stopBroadcast();
 
+        // Save only after every deployment in this run succeeded.
         if (vault != address(0)) _save(chainId, "vault", vault);
+        if (journal != address(0)) _save(chainId, "journal", journal);
         _save(chainId, "beacon", address(b));
     }
 }
