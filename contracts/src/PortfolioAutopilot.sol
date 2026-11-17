@@ -31,8 +31,10 @@ contract PortfolioAutopilot is AbstractReactive {
         uint256(keccak256("RangeAlert(uint256,uint8,uint256,uint256,uint256)"));
 
     address internal constant CRON_SOURCE = 0x0000000000000000000000000000000000fffFfF;
-    /// @dev Cron1000 ≈ every 1,000 Lasna blocks (~17 min). Snapshots are time-gated on top of it.
+    /// @dev Cron topics (legacy system contract). Cron100 ≈ 100 s, Cron1000 ≈ 17 min, Cron10000 ≈ 2.8 h on Omni.
+    uint256 internal constant CRON100_TOPIC0 = 0xb49937fb8970e19fd46d48f7e3fb00d659deac0347f79cd7cb542f0fc1503c70;
     uint256 internal constant CRON1000_TOPIC0 = 0xe20b31294d84c3661ddc8f423abb9c70310d0cf172aa2714ead78029b325e3f4;
+    uint256 internal constant CRON10000_TOPIC0 = 0xd214e1d84db704ed42d37f538ea9bf71e44ba28bc1cc088b2f5deca654677a56;
 
     uint64 internal constant GAS_REBALANCE = 500_000;
     uint64 internal constant GAS_JOURNAL = 600_000;
@@ -115,6 +117,7 @@ contract PortfolioAutopilot is AbstractReactive {
     event RulesUpdated(Rules rules);
     event RangeUpdated(uint256 lowerE18, uint256 upperE18);
     event PausedSet(bool paused);
+    event CronIntervalSet(uint256 blocks);
 
     error NotOwner();
     error UnknownChain(uint256 chainId);
@@ -169,6 +172,8 @@ contract PortfolioAutopilot is AbstractReactive {
     uint256 public lastSnapshotAt;
     uint256 public snapshotCount;
 
+    /// @notice Which Reactive cron the autopilot wakes up on (owner can trade freshness for cost).
+    uint256 public cronTopic;
     uint256 public reactCount;
     uint256 public lastReactAt;
     uint256 public lastOriginTx;
@@ -222,6 +227,7 @@ contract PortfolioAutopilot is AbstractReactive {
         if (c.lpPool != c.pricePool || c.lpChainId != c.priceChainId) {
             _sub(c.lpChainId, c.lpPool, SYNC_TOPIC0, REACTIVE_IGNORE);
         }
+        cronTopic = CRON1000_TOPIC0;
         _sub(block.chainid, CRON_SOURCE, CRON1000_TOPIC0, REACTIVE_IGNORE);
     }
 
@@ -234,7 +240,7 @@ contract PortfolioAutopilot is AbstractReactive {
         lastOriginChainId = log.chainId;
 
         uint256 t0 = log.topic0;
-        if (t0 == CRON1000_TOPIC0 && log.contractAddress == CRON_SOURCE) {
+        if (t0 == cronTopic && log.contractAddress == CRON_SOURCE) {
             _onCron(log.txHash);
             return;
         }
@@ -591,6 +597,18 @@ contract PortfolioAutopilot is AbstractReactive {
     function setSnapshotSchedule(uint32 interval, bool resync) external onlyOwner {
         snapshotInterval = interval;
         resyncOnSnapshot = resync;
+    }
+
+    /// @notice Choose how often the autopilot wakes up: 100, 1000 or 10000 Lasna blocks.
+    ///         Every wake-up is a billed reactive transaction, so slower is cheaper.
+    function setCronInterval(uint256 blocks) external onlyOwner {
+        uint256 topic =
+            blocks == 100 ? CRON100_TOPIC0 : blocks == 1000 ? CRON1000_TOPIC0 : blocks == 10000 ? CRON10000_TOPIC0 : 0;
+        if (topic == 0) revert BadRules();
+        _unsub(block.chainid, CRON_SOURCE, cronTopic, REACTIVE_IGNORE);
+        cronTopic = topic;
+        _sub(block.chainid, CRON_SOURCE, topic, REACTIVE_IGNORE);
+        emit CronIntervalSet(blocks);
     }
 
     function setPaused(bool p) external onlyOwner {

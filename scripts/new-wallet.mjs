@@ -40,7 +40,9 @@ if (/^PRIVATE_KEY=/m.test(existing)) {
 }
 
 const out = JSON.parse(cast(["wallet", "new", "--json"]));
-const w = Array.isArray(out) ? out[0] : out;
+// cast ≥1.9 wraps results as { schema_version, success, data, ... }
+const payload = out && typeof out === "object" && "data" in out ? out.data : out;
+const w = Array.isArray(payload) ? payload[0] : Array.isArray(payload?.wallets) ? payload.wallets[0] : payload;
 const address = w.address;
 const key = w.private_key ?? w.privateKey;
 if (!/^0x[0-9a-fA-F]{40}$/.test(address) || !/^0x[0-9a-fA-F]{64}$/.test(key)) {

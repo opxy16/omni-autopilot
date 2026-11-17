@@ -447,6 +447,18 @@ contract PortfolioAutopilotTest is OmniHarness {
         vm.stopPrank();
     }
 
+    function test_cronIntervalSwitch() public {
+        _seed();
+        uint256 before = sys.activeSubCount(address(ap));
+        ap.setCronInterval(10_000);
+        assertEq(sys.activeSubCount(address(ap)), before, "swapped, not added");
+        assertEq(ap.cronTopic(), 0xd214e1d84db704ed42d37f538ea9bf71e44ba28bc1cc088b2f5deca654677a56);
+        _cron(); // a Cron1000 tick is now ignored
+        assertEq(ap.lastSnapshotAt(), 0);
+        vm.expectRevert(PortfolioAutopilot.BadRules.selector);
+        ap.setCronInterval(5);
+    }
+
     function test_badRulesRejected() public {
         PortfolioAutopilot.Rules memory r = PortfolioAutopilot.Rules(6000, 0, 200, 120, 900, 10e18);
         vm.expectRevert(PortfolioAutopilot.BadRules.selector);
