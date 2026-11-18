@@ -3,11 +3,13 @@
 // origin event → reactive tx on Lasna → callback on the destination (→ echo back on Lasna),
 // with explorer links and latency measured from block timestamps.
 //
-//   node scripts/evidence.mjs [lookbackBlocks]   (default 200000 ≈ 2 days of Lasna blocks)
+//   node scripts/evidence.mjs [lookbackBlocks]          markdown table (default: since the autopilot's deploy block)
+//   node scripts/evidence.mjs --json [lookbackBlocks]   writes dashboard/src/lib/history.json, so the dashboard
+//                                                       can show loops older than its live scan window
 //
 // Uses viem from dashboard/node_modules (run `npm install` in dashboard/ first).
 import { createRequire } from "node:module";
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -49,8 +51,16 @@ async function txTime(id, tx) {
 const ap = dep(5318007).autopilot;
 const L = cl(5318007);
 const latest = await L.getBlockNumber();
-const lookback = BigInt(process.argv[2] ?? 200000);
-const from = latest > lookback ? latest - lookback : 0n;
+const asJson = process.argv.includes("--json");
+const numArg = process.argv.slice(2).find((a) => /^\d+$/.test(a));
+const deployBlock = (() => {
+  try {
+    return BigInt(JSON.parse(readFileSync(join(root, "dashboard", "src", "lib", "deployments.json"), "utf8"))["5318007"]?.deployBlock ?? 0);
+  } catch {
+    return 0n;
+  }
+})();
+const from = numArg ? (latest > BigInt(numArg) ? latest - BigInt(numArg) : 0n) : deployBlock;
 const logs = [];
 for (let s = from; s <= latest; s += 10000n) {
   const e = s + 9999n > latest ? latest : s + 9999n;
@@ -69,6 +79,9 @@ const used = new Set();
 const nextLanded = (kind, after) => landed.find((e) => !used.has(e) && Number(e.a.kind) === kind && e.l.blockNumber >= after);
 
 const rows = [];
+const loops = [];
+const pct1 = (bps) => (Number(bps) / 100).toFixed(1);
+const usd0 = (v) => `$${Math.round(Number(v) / 1e18).toLocaleString("en-US")}`;
 for (const e of ev) {
   const rx = e.l.transactionHash;
   let what, origin, cb, echo;
@@ -93,10 +106,25 @@ for (const e of ev) {
     if (l1) (used.add(l1), (cb = { id: Number(l1.a.chainId), tx: hx(l1.a.destTx), note: "" }), (echo = l1.l.transactionHash));
   } else continue;
   const [to, tr, tc] = await Promise.all([origin ? txTime(origin.id, origin.tx) : undefined, txTime(5318007, rx), cb ? txTime(cb.id, cb.tx) : undefined]);
+  const o = origin ? { chainId: origin.id, tx: origin.tx, time: to } : undefined;
+  const c = cb ? { chainId: cb.id, tx: cb.tx, time: tc, ok: !cb.note } : undefined;
+  const base = { origin: o, reactive: { chainId: 5318007, tx: rx, time: tr }, callback: c };
+  const secs = { reactSecs: to !== undefined && tr !== undefined ? Math.max(0, tr - to) : undefined, callbackSecs: tr !== undefined && tc !== undefined ? Math.max(0, tc - tr) : undefined };
+  if (e.name === "RebalanceRequested")
+    loops.push({ kind: "rebalance", key: `r${e.a.nonce}`, title: `Rebalance #${e.a.nonce}`, detail: `At ${pct1(e.a.ethShareBps)}% ETH, ${e.a.sellEth ? "sell" : "buy"} tETH on Base`, ...base, ...secs });
+  else if (e.name === "RangeAlertRequested")
+    loops.push({ kind: "alert", key: `a${rx}`, title: "Range alert", detail: `Price ${usd0(e.a.priceE18)} ${["changed range", "back inside your range", "fell below your range", "rose above your range"][Number(e.a.kind)]}`, ...base, ...secs });
+  else loops.push({ kind: "snapshot", key: `s${e.a.id}-${rx}`, title: `Snapshot #${e.a.id}`, detail: `${usd0(e.a.totalUsd)} at ${pct1(e.a.ethShareBps)}% ETH`, ...base, ...secs });
   const lat = to !== undefined && tc !== undefined ? `${tc - to}s` : tr !== undefined && tc !== undefined ? `${tc - tr}s from Lasna` : "—";
   rows.push(
     `| ${what} | ${origin ? `${CH[origin.id].name} ${link(origin.id, origin.tx)}` : "Lasna cron / owner"} | ${link(5318007, rx)} | ${cb ? `${CH[cb.id].name} ${link(cb.id, cb.tx)}${cb.note}` : "pending"} | ${echo ? link(5318007, echo) : "—"} | ${lat} |`,
   );
+}
+if (asJson) {
+  const out = join(root, "dashboard", "src", "lib", "history.json");
+  writeFileSync(out, JSON.stringify({ autopilot: ap, generatedAtBlock: Number(latest), loops: loops.reverse() }, null, 2) + "\n");
+  console.log(`wrote ${loops.length} loops to dashboard/src/lib/history.json`);
+  process.exit(0);
 }
 console.log("| Loop | Origin event | Reactive tx (Lasna) | Callback | Landing seen on Lasna | Origin → callback |");
 console.log("|---|---|---|---|---|---|");

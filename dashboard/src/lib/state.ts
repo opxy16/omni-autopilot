@@ -2,6 +2,7 @@ import { createPublicClient, http, formatUnits, type PublicClient, type Log, toH
 import { CHAINS, ORIGIN_ORDER, lasna, VIEM_CHAINS } from "./chains";
 import { autopilotAbi, journalAbi, vaultAbi, systemAbi } from "./abi";
 import deployments from "./deployments.json";
+import history from "./history.json";
 import type { DashState, FeedItem, Hex, Loop } from "./types";
 
 const SYSTEM = "0x8888888888888888888888888888888888888888" as const;
@@ -243,16 +244,16 @@ export async function getDashState(): Promise<DashState> {
         }
         case "PriceUpdated": {
           const c = Number(a.chainId);
-          return { key, kind: "price", chainId: c, lasnaTx, lasnaBlock, text: `${CHAINS[c]?.short} pool price → ${fmtUsd(n(a.priceE18 as bigint))} per tETH` };
+          return { key, kind: "price", chainId: c, lasnaTx, lasnaBlock, text: `${CHAINS[c]?.short} pool price is now ${fmtUsd(n(a.priceE18 as bigint))} per tETH` };
         }
         case "RebalanceRequested":
-          return { key, kind: "rebalance", chainId: base, lasnaTx, lasnaBlock, text: `Mix hit ${(Number(a.ethShareBps) / 100).toFixed(1)}% ETH → asked the Base vault to ${a.sellEth ? "sell" : "buy"} ${a.sellEth ? n(a.amountIn as bigint).toFixed(4) + " tETH" : fmtUsd(n(a.amountIn as bigint)) + " of tETH"}` };
+          return { key, kind: "rebalance", chainId: base, lasnaTx, lasnaBlock, text: `Mix reached ${(Number(a.ethShareBps) / 100).toFixed(1)}% ETH, so it asked the Base vault to ${a.sellEth ? "sell" : "buy"} ${a.sellEth ? n(a.amountIn as bigint).toFixed(4) + " tETH" : fmtUsd(n(a.amountIn as bigint)) + " of tETH"}` };
         case "RebalanceSettled":
           return { key, kind: "settled", chainId: base, lasnaTx, lasnaBlock, text: a.executed ? `Vault confirmed trade #${a.nonce}` : `Vault skipped request #${a.nonce} (a safety rail held it back)` };
         case "RangeAlertRequested":
           return { key, kind: "alert", chainId: Number(a.originChainId), lasnaTx, lasnaBlock, text: `Price ${fmtUsd(n(a.priceE18 as bigint))} ${KIND_TEXT[Number(a.kind)] ?? "changed range"} (${fmtUsd(n(a.lowerE18 as bigint))}–${fmtUsd(n(a.upperE18 as bigint))})` };
         case "SnapshotRequested":
-          return { key, kind: "snapshot", lasnaTx, lasnaBlock, text: `Cron tick → journal snapshot #${a.id}: ${fmtUsd(n(a.totalUsd as bigint))}, ${(Number(a.ethShareBps) / 100).toFixed(1)}% ETH` };
+          return { key, kind: "snapshot", lasnaTx, lasnaBlock, text: `Scheduled check-in wrote snapshot #${a.id}: ${fmtUsd(n(a.totalUsd as bigint))} at ${(Number(a.ethShareBps) / 100).toFixed(1)}% ETH` };
         case "ResyncRequested":
           return { key, kind: "resync", chainId: Number(a.chainId), lasnaTx, lasnaBlock, text: `Asked the ${CHAINS[Number(a.chainId)]?.short} beacon to re-publish real balances` };
         default:
@@ -279,7 +280,7 @@ export async function getDashState(): Promise<DashState> {
           kind: "rebalance",
           key: `r${a.nonce}`,
           title: `Rebalance #${a.nonce}`,
-          detail: `${(Number(a.ethShareBps) / 100).toFixed(1)}% ETH → ${a.sellEth ? "sell" : "buy"} tETH on Base`,
+          detail: `At ${(Number(a.ethShareBps) / 100).toFixed(1)}% ETH, ${a.sellEth ? "sell" : "buy"} tETH on Base`,
           origin: oc && oc !== lasna.id && a.originTx ? { chainId: oc, tx: hexTx(a.originTx as bigint) } : undefined,
           reactive,
           callback: s ? { chainId: base, tx: hexTx(s.args.originTx as bigint), ok: Boolean(s.args.executed) } : undefined,
@@ -304,13 +305,19 @@ export async function getDashState(): Promise<DashState> {
           kind: "snapshot",
           key: `s${a.id}-${d.log.transactionHash}`,
           title: `Snapshot #${a.id}`,
-          detail: `${fmtUsd(n(a.totalUsd as bigint))} · ${(Number(a.ethShareBps) / 100).toFixed(1)}% ETH`,
+          detail: `${fmtUsd(n(a.totalUsd as bigint))} at ${(Number(a.ethShareBps) / 100).toFixed(1)}% ETH`,
           reactive,
           callback: l ? { chainId: Number(l.args.chainId), tx: hexTx(l.args.destTx as bigint), ok: true } : undefined,
         });
       }
     }
+    // Live scan covers ~17 h; older loops come from history.json (written by scripts/evidence.mjs --json).
     const lastLoops = loops.slice(-12).reverse();
+    const liveKeys = new Set(loops.map((l) => l.key));
+    const recorded =
+      (history as { autopilot?: string; loops?: Loop[] }).autopilot?.toLowerCase() === autopilot.toLowerCase()
+        ? ((history as { loops: Loop[] }).loops ?? []).filter((l) => !liveKeys.has(l.key))
+        : [];
 
     // timestamps + latency for the loops shown, and for feed items
     await Promise.all([
@@ -329,7 +336,9 @@ export async function getDashState(): Promise<DashState> {
       }),
       ...feed.slice(0, 25).map(async (f) => (f.time = await timeOfBlock(lasna.id, BigInt(f.lasnaBlock)))),
     ]);
-    state.loops = lastLoops;
+    state.loops = [...lastLoops, ...recorded]
+      .sort((a, b) => (b.reactive.time ?? 0) - (a.reactive.time ?? 0))
+      .slice(0, 40);
     state.feed = feed;
   } catch (e) {
     errors.push(`Lasna log scan failed: ${(e as Error).message.slice(0, 120)}`);

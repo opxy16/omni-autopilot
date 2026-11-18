@@ -9,6 +9,8 @@
 - **Proof of the full loop:** [docs/EVIDENCE.md](docs/EVIDENCE.md) — origin event → reactive tx → callback, with explorer links. Measured origin-to-callback latency: **1–2 seconds**.
 - **Demo video:** _link goes here_
 
+![Omni Autopilot dashboard: live status, the cross-chain route and the allocation tape](docs/screenshots/desktop-night.jpg)
+
 ---
 
 ## The problem, in plain English
@@ -166,6 +168,7 @@ Dashboard:
 
 ```bash
 cd dashboard && npm install && npm run sync-deployments && npm run dev
+node ../scripts/evidence.mjs --json   # refresh dashboard/src/lib/history.json so loops older than the ~17 h live scan stay visible
 ```
 
 ## Costs and keeping it alive

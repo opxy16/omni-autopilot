@@ -1,0 +1,168 @@
+{
+  "autopilot": "0x45750C2d44889faAeCFf4A1DD0986AACb972eAD7",
+  "generatedAtBlock": 8668933,
+  "loops": [
+    {
+      "kind": "snapshot",
+      "key": "s4-0xad71298512a6fd65289626a278e6d3779c96008edaac455214d764b0109d1817",
+      "title": "Snapshot #4",
+      "detail": "$21,856 at 60.0% ETH",
+      "reactive": {
+        "chainId": 5318007,
+        "tx": "0xad71298512a6fd65289626a278e6d3779c96008edaac455214d764b0109d1817",
+        "time": 1795017802
+      },
+      "callback": {
+        "chainId": 84532,
+        "tx": "0x09fcaa75b2b0daace52a341c48f39db5d057e2160969dc5047e1a75ae6bdcd20",
+        "time": 1795017804,
+        "ok": true
+      },
+      "callbackSecs": 2
+    },
+    {
+      "kind": "snapshot",
+      "key": "s3-0xdfe645af2fc28d642b0c926213c6b3564517534f4df03d60334bd43f642a8365",
+      "title": "Snapshot #3",
+      "detail": "$21,856 at 60.0% ETH",
+      "reactive": {
+        "chainId": 5318007,
+        "tx": "0xdfe645af2fc28d642b0c926213c6b3564517534f4df03d60334bd43f642a8365",
+        "time": 1795002934
+      },
+      "callback": {
+        "chainId": 84532,
+        "tx": "0xd5014d8bf506cfdcc038ceb5861362ffdc4f050117d2d083fca9b7b80af866be",
+        "time": 1795002936,
+        "ok": true
+      },
+      "callbackSecs": 2
+    },
+    {
+      "kind": "snapshot",
+      "key": "s2-0x57feb5fc9cd1d4dfd9d90dbf325bf72a33a4d1922381eb18f3063ac749911bc5",
+      "title": "Snapshot #2",
+      "detail": "$21,856 at 60.0% ETH",
+      "reactive": {
+        "chainId": 5318007,
+        "tx": "0x57feb5fc9cd1d4dfd9d90dbf325bf72a33a4d1922381eb18f3063ac749911bc5",
+        "time": 1794988064
+      },
+      "callback": {
+        "chainId": 84532,
+        "tx": "0x89b773583456a93f45a729cb72c187cbb6e24766b7b2a7adf2e03c7bc61d6282",
+        "time": 1794988066,
+        "ok": true
+      },
+      "callbackSecs": 2
+    },
+    {
+      "kind": "snapshot",
+      "key": "s1-0x9ffcc92d85149ccc916a31fb70568f9bcb359b45ec00d1f11269da82c6ca6bcc",
+      "title": "Snapshot #1",
+      "detail": "$21,856 at 60.0% ETH",
+      "reactive": {
+        "chainId": 5318007,
+        "tx": "0x9ffcc92d85149ccc916a31fb70568f9bcb359b45ec00d1f11269da82c6ca6bcc",
+        "time": 1794973264
+      },
+      "callback": {
+        "chainId": 84532,
+        "tx": "0xfd44fa8f33059c9d20b4c8aadd561c022dc1060e27d9ea2eb055c17564bd7448",
+        "time": 1794973266,
+        "ok": true
+      },
+      "callbackSecs": 2
+    },
+    {
+      "kind": "alert",
+      "key": "a0xa96635843a86e5d6e5307a221dacfc59b09c35bdd5ffe760467643031fea00e0",
+      "title": "Range alert",
+      "detail": "Price $1,879 back inside your range",
+      "origin": {
+        "chainId": 1301,
+        "tx": "0x9ec5b57f6057fbad8c5a761eeba8521c327b8abc25f8df06c485fcb811872bed",
+        "time": 1794958623
+      },
+      "reactive": {
+        "chainId": 5318007,
+        "tx": "0xa96635843a86e5d6e5307a221dacfc59b09c35bdd5ffe760467643031fea00e0",
+        "time": 1794958622
+      },
+      "callback": {
+        "chainId": 84532,
+        "tx": "0xe74076c7698558efe604620370a8bbdd2cd618fcf0c4704d6dc8a834e5b5e5ad",
+        "time": 1794958624,
+        "ok": true
+      },
+      "reactSecs": 0,
+      "callbackSecs": 2
+    },
+    {
+      "kind": "alert",
+      "key": "a0x5633599ed8a0618a8b72d39cb63d06f2755791994d4a3e2779a19e18114072cf",
+      "title": "Range alert",
+      "detail": "Price $1,546 fell below your range",
+      "origin": {
+        "chainId": 1301,
+        "tx": "0x922af9888f5f168b68d1f8c281f558386d823d6d102ed549212b73662cb9a323",
+        "time": 1794958571
+      },
+      "reactive": {
+        "chainId": 5318007,
+        "tx": "0x5633599ed8a0618a8b72d39cb63d06f2755791994d4a3e2779a19e18114072cf",
+        "time": 1794958570
+      },
+      "callback": {
+        "chainId": 84532,
+        "tx": "0xec18ac2232af7c8d8243c9f2dc2104ea4e311df528b2b59fa4ed4622bf1d4843",
+        "time": 1794958572,
+        "ok": true
+      },
+      "reactSecs": 0,
+      "callbackSecs": 2
+    },
+    {
+      "kind": "rebalance",
+      "key": "r1",
+      "title": "Rebalance #1",
+      "detail": "At 72.6% ETH, sell tETH on Base",
+      "origin": {
+        "chainId": 11155111,
+        "tx": "0x8745dd7b184caf7ad27affb11b538721fde3886bd41a8482d7f1ba3b9fe88f51",
+        "time": 1794958500
+      },
+      "reactive": {
+        "chainId": 5318007,
+        "tx": "0x0082dc4e0ab4d8280908d8397d20f5188352aec56bdf80e5f4cfd946347d77da",
+        "time": 1794958500
+      },
+      "callback": {
+        "chainId": 84532,
+        "tx": "0x3dc9c47e7a92c97d737597991a4fb4515734ecfa01fbcbcce1b3bfe5c00677ff",
+        "time": 1794958502,
+        "ok": true
+      },
+      "reactSecs": 0,
+      "callbackSecs": 2
+    },
+    {
+      "kind": "snapshot",
+      "key": "s0-0x72666283d67a3e0ca56e53e6c4ed86ad51902816d37d58b245567a60cf78d137",
+      "title": "Snapshot #0",
+      "detail": "$15,940 at 62.4% ETH",
+      "reactive": {
+        "chainId": 5318007,
+        "tx": "0x72666283d67a3e0ca56e53e6c4ed86ad51902816d37d58b245567a60cf78d137",
+        "time": 1794958465
+      },
+      "callback": {
+        "chainId": 84532,
+        "tx": "0x7ca275521a9e171a0b24d31baea3c6b2a42a4a468400463d9cec95a9efd0ce63",
+        "time": 1794958467,
+        "ok": true
+      },
+      "callbackSecs": 2
+    }
+  ]
+}

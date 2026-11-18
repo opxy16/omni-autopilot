@@ -1,105 +1,236 @@
 @import "tailwindcss";
 
+/*
+ * Omni Autopilot — flight-deck design system.
+ * Colour follows avionics convention, so every hue means something:
+ *   magenta  what the autopilot commands (Lasna, targets, callbacks)
+ *   cyan     values you selected (your rules)
+ *   green    engaged / completed
+ *   amber    caution / drift
+ * Chains get calm, distinct hues that never collide with those meanings.
+ */
+
 @theme {
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
-  --color-ink: #05060f;
-  --color-react: #2de2a6;
-  --color-violet: #7c5cff;
-  --color-base: #3b82f6;
-  --color-uni: #f50db4;
-  --color-sep: #8b9cff;
+  --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-cockpit), var(--font-body), ui-sans-serif, sans-serif;
 }
 
-:root {
+:root,
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #e7edf2;
+  --bg-deep: #dde5ec;
+  --panel: #f7fafc;
+  --panel-2: #eef3f7;
+  --line: #c3cfda;
+  --line-strong: #8fa1b3;
+  --text: #0d1d31;
+  --muted: #4c5f74;
+  --magenta: #a8128a;
+  --cyan: #006e80;
+  --green: #127a46;
+  --amber: #9a5800;
+  --red: #b42318;
+  --sepolia: #56677c;
+  --base: #1d5bd0;
+  --unichain: #7337c9;
+  --tape-bg: #0f2038;
+  --tape-text: #e6eef6;
+  --shadow: 0 1px 0 rgba(13, 29, 49, 0.04), 0 10px 30px -18px rgba(13, 29, 49, 0.35);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #08131f;
+    --bg-deep: #050d16;
+    --panel: #0d1c2e;
+    --panel-2: #112438;
+    --line: #1f3550;
+    --line-strong: #35567a;
+    --text: #e4edf6;
+    --muted: #8ea3ba;
+    --magenta: #f05bd8;
+    --cyan: #4fd7ea;
+    --green: #45dd8f;
+    --amber: #f5b945;
+    --red: #ff6b5e;
+    --sepolia: #aab8ca;
+    --base: #5b9bff;
+    --unichain: #c79bff;
+    --tape-bg: #050d16;
+    --tape-text: #e4edf6;
+    --shadow: 0 1px 0 rgba(255, 255, 255, 0.03), 0 18px 40px -24px rgba(0, 0, 0, 0.9);
+  }
+}
+
+:root[data-theme="dark"] {
   color-scheme: dark;
+  --bg: #08131f;
+  --bg-deep: #050d16;
+  --panel: #0d1c2e;
+  --panel-2: #112438;
+  --line: #1f3550;
+  --line-strong: #35567a;
+  --text: #e4edf6;
+  --muted: #8ea3ba;
+  --magenta: #f05bd8;
+  --cyan: #4fd7ea;
+  --green: #45dd8f;
+  --amber: #f5b945;
+  --red: #ff6b5e;
+  --sepolia: #aab8ca;
+  --base: #5b9bff;
+  --unichain: #c79bff;
+  --tape-bg: #050d16;
+  --tape-text: #e4edf6;
+  --shadow: 0 1px 0 rgba(255, 255, 255, 0.03), 0 18px 40px -24px rgba(0, 0, 0, 0.9);
 }
 
 html,
 body {
-  background: var(--color-ink);
-  color: #e8eaf6;
+  background: var(--bg);
+  color: var(--text);
 }
 
 body {
   min-height: 100dvh;
   overflow-x: hidden;
-  font-feature-settings: "ss01", "cv11";
+  font-size: 16px;
+  line-height: 1.55;
+  /* a faint chart grid, like a navigation display */
+  background-image:
+    linear-gradient(var(--bg-deep) 1px, transparent 1px),
+    linear-gradient(90deg, var(--bg-deep) 1px, transparent 1px);
+  background-size: 48px 48px;
+  background-position: -1px -1px;
 }
 
-/* aurora backdrop */
-.aurora {
-  position: fixed;
-  inset: -20vmax;
-  z-index: 0;
-  pointer-events: none;
-  filter: blur(60px) saturate(140%);
-  opacity: 0.55;
-  background:
-    radial-gradient(40vmax 30vmax at 15% 20%, rgba(124, 92, 255, 0.35), transparent 60%),
-    radial-gradient(35vmax 28vmax at 85% 15%, rgba(45, 226, 166, 0.22), transparent 60%),
-    radial-gradient(40vmax 30vmax at 70% 85%, rgba(245, 13, 180, 0.18), transparent 60%),
-    radial-gradient(30vmax 25vmax at 20% 90%, rgba(59, 130, 246, 0.2), transparent 60%);
-  animation: drift 28s ease-in-out infinite alternate;
+::selection {
+  background: color-mix(in oklab, var(--cyan) 35%, transparent);
 }
 
-@keyframes drift {
-  0% { transform: translate3d(0, 0, 0) rotate(0deg) scale(1); }
-  50% { transform: translate3d(2vmax, -1.5vmax, 0) rotate(8deg) scale(1.05); }
-  100% { transform: translate3d(-2vmax, 1vmax, 0) rotate(-6deg) scale(1.02); }
+:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 3px;
+  border-radius: 4px;
 }
 
-.grain {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  opacity: 0.05;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+.display {
+  font-family: var(--font-display);
+  font-feature-settings: "tnum" 1;
 }
 
-.glass {
-  position: relative;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.065), rgba(255, 255, 255, 0.025));
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    0 20px 60px -30px rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(18px) saturate(140%);
-  -webkit-backdrop-filter: blur(18px) saturate(140%);
-  border-radius: 1.5rem;
-}
-
-.glow-ring {
-  box-shadow: 0 0 0 1px rgba(45, 226, 166, 0.35), 0 0 32px -6px rgba(45, 226, 166, 0.5);
-}
-
-.flow-line {
-  background-image: linear-gradient(90deg, transparent 0%, rgba(45, 226, 166, 0.9) 50%, transparent 100%);
-  background-size: 200% 100%;
-  animation: flow 1.8s linear infinite;
-}
-
-@keyframes flow {
-  from { background-position: 100% 0; }
-  to { background-position: -100% 0; }
-}
-
-.pulse-dot {
-  box-shadow: 0 0 0 0 rgba(45, 226, 166, 0.7);
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0% { box-shadow: 0 0 0 0 rgba(45, 226, 166, 0.6); }
-  70% { box-shadow: 0 0 0 10px rgba(45, 226, 166, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(45, 226, 166, 0); }
-}
-
-.tabular {
+.tnum {
   font-variant-numeric: tabular-nums;
 }
 
+/* Panels: square-shouldered instrument housings, not soft cards */
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  box-shadow: var(--shadow);
+  min-width: 0;
+}
+
+/* The two flight instruments get a bezel. Like real cockpit displays they are emissive,
+   so they keep the night palette in both themes (accents stay legible on the dark glass). */
+.bezel {
+  --magenta: #f05bd8;
+  --cyan: #4fd7ea;
+  --green: #45dd8f;
+  --amber: #f5b945;
+  --sepolia: #aab8ca;
+  --base: #5b9bff;
+  --unichain: #c79bff;
+  --line-strong: #35567a;
+  --tape-bg: #050d16;
+  --tape-text: #e4edf6;
+  background: var(--tape-bg);
+  color: var(--tape-text);
+  border-radius: 14px;
+  border: 1px solid var(--line-strong);
+  box-shadow:
+    inset 0 0 0 4px color-mix(in oklab, var(--tape-bg) 70%, var(--line-strong)),
+    var(--shadow);
+}
+
+.hairline {
+  border-color: var(--line);
+}
+
+.muted {
+  color: var(--muted);
+}
+
+a.link {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in oklab, currentColor 35%, transparent);
+  text-underline-offset: 3px;
+  transition: color 0.15s, text-decoration-color 0.15s;
+}
+
+a.link:hover {
+  color: var(--cyan);
+  text-decoration-color: var(--cyan);
+}
+
+/* Mode annunciator boxes — the one place caps are used, as in a real cockpit */
+.fma {
+  font-family: var(--font-display);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  padding: 7px 9px 6px;
+  border: 1.5px solid currentColor;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+.fma-changed {
+  animation: fma-flash 0.6s steps(2, jump-none) 3;
+}
+
+@keyframes fma-flash {
+  50% {
+    background: currentColor;
+    color: var(--panel);
+  }
+}
+
+.pulse-dot {
+  animation: ping 2.4s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes ping {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--green) 70%, transparent);
+  }
+  80%,
+  100% {
+    box-shadow: 0 0 0 9px transparent;
+  }
+}
+
+.route-dash {
+  stroke-dasharray: 4 7;
+  animation: route 1.6s linear infinite;
+}
+
+@keyframes route {
+  to {
+    stroke-dashoffset: -22;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .aurora, .flow-line, .pulse-dot { animation: none; }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
 }
