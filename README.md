@@ -5,7 +5,7 @@
 > Built for the **Reactive Omni Buildathon** — track: **Set It and Forget It**.
 > It covers three of the track's suggested ideas at once: a portfolio tracker, an alert when a liquidity position hits a price, and custom rebalancing rules.
 
-- **Dashboard:** _Vercel link goes here_
+- **Live dashboard:** https://omni-autopilot.vercel.app
 - **Proof of the full loop:** [docs/EVIDENCE.md](docs/EVIDENCE.md) — origin event → reactive tx → callback, with explorer links. Measured origin-to-callback latency: **1–2 seconds**.
 - **Demo video:** _link goes here_
 

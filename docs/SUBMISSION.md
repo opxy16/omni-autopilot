@@ -9,11 +9,11 @@ Copy each block into the matching field on the "Submit Build" form.
 **One-line description (tagline):**
 A set-it-and-forget-it portfolio autopilot: one reactive contract tracks your wallet on Ethereum, Base and Unichain Sepolia, rebalances to your target mix, alerts when your LP range breaks, and keeps a daily journal — no bot, no server.
 
-**GitHub:** https://github.com/opxy16/omni-autopilot _(update if the repo name differs)_
+**GitHub:** https://github.com/opxy16/omni-autopilot
 
 **Demo video:** _paste link (under 3 minutes)_
 
-**Dashboard:** _paste Vercel link_
+**Dashboard:** https://omni-autopilot.vercel.app
 
 ---
 

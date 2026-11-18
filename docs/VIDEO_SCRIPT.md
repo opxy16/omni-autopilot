@@ -1,7 +1,7 @@
 # Demo video script — under 3 minutes
 
 **Setup before recording**
-- Dashboard open full-screen (hosted URL), scrolled to the top.
+- Dashboard open full-screen at https://omni-autopilot.vercel.app, scrolled to the top.
 - A terminal in the repo, font large, with these ready to paste: `bash scripts/demo.sh gift-eth 3`, `bash scripts/demo.sh price-drop`, `bash scripts/demo.sh price-recover`.
 - Explorer tabs ready: the autopilot on lasna.reactscan.net and the vault on sepolia.basescan.org.
 - Check `bash scripts/demo.sh status` shows the mix inside the 55–65% zone. If not, wait for the next check-in or run the opposite gift so you start "Balanced".
